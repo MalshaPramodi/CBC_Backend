@@ -55,6 +55,6 @@ export function deleteUser(req, res) {
     User.deleteOne({ email: req.body.email }).then(
         () => res.json({ Message: "User deleted" })
     ).catch(
-        () => res.json({ Message: "Error" })
+        () => res.json({ Message: "Error:User cannot be deleted." })
     )
 }

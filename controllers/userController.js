@@ -1,6 +1,7 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 export function createUser(req, res) {
 
@@ -30,7 +31,7 @@ export function loginUser(req, res) {
                 const isPasswordCorrect = bcrypt.compareSync(req.body.password, user.password)
 
                 if (isPasswordCorrect) {
-                    const token = jwt.sign({ user }, "cbc-secret-key-123")
+                    const token = jwt.sign({ user }, process.env.SECRET)
                     console.log(token)
 
                     res.json(

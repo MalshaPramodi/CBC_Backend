@@ -6,9 +6,26 @@ import dotenv from "dotenv";
 export function createUser(req, res) {
 
     const newUserData = req.body;
-    newUserData.password = bcrypt.hashSync(newUserData.password, 10);
+
 
     const user = new User(newUserData);
+
+    if (newUserData.type === "admin") {
+        if (req.user == null) {
+            res.json({
+                message: "Please login as administrator to create admin accounts"
+            })
+            return
+        }
+
+        if (req.user.type != "admin") {
+            res.json({
+                message: "You are not authorized to create admin accounts"
+            })
+            return
+        }
+    }
+    newUserData.password = bcrypt.hashSync(newUserData.password, 10);
 
     user.save().then(
         () => res.json({
@@ -59,3 +76,8 @@ export function deleteUser(req, res) {
         () => res.json({ Message: "Error:User cannot be deleted." })
     )
 }
+
+
+//Customer Acc - john.doe@example.com hashed_password_here
+
+//Admin Acc - john.doeadmin@example.com hashed_password_here

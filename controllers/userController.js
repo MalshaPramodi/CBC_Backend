@@ -8,8 +8,9 @@ export function createUser(req, res) {
 
     const newUserData = req.body;
 
-
+    newUserData.password = bcrypt.hashSync(newUserData.password, 10);
     const user = new User(newUserData);
+
 
     if (newUserData.type === "admin") {
         if (req.user == null) {
@@ -26,7 +27,7 @@ export function createUser(req, res) {
             return
         }
     }
-    newUserData.password = bcrypt.hashSync(newUserData.password, 10);
+
 
     user.save().then(
         () => res.json({
@@ -103,4 +104,4 @@ export function isCustomer(req) {
 }
 //Customer Acc - john.doe@example.com hashed_password_here
 
-//Admin Acc - john.doeadmin@example.com hashed_password_here
+//Admin Acc - admin@example.com admin123

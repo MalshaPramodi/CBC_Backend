@@ -80,7 +80,7 @@ export function deleteUser(req, res) {
 }
 
 export function isAdmin(req) {
-    if (req.user == null) {
+    if (!req.user) {
         return false
     }
 

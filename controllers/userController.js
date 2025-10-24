@@ -182,6 +182,17 @@ export async function googleLogin(req, res) {
     res.json({ Message: "Google login failed" });
   }
 }
+
+export async function getUser(req, res) {
+  if (req.user == null) {
+    res.status(404).json({
+      message: "Please login to view details",
+    });
+    return;
+  }
+  res.json(req.user);
+}
+
 //Customer Acc - john.doe@example.com hashed_password_here
 
 //Admin Acc - admin@example.com admin123

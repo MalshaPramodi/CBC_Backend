@@ -32,6 +32,26 @@ export function getProducts(req, res) {
   });
 }
 
+export async function getTotalStock(req, res) {
+  try {
+    if (isAdmin(req)) {
+      const totalStock = await Product.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$stock" },
+          },
+        },
+      ]);
+      res.json({ totalStock: totalStock[0]?.total || 0 });
+    } else {
+      res.status(403).json({ message: "Unauthorized" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export function deleteProduct(req, res) {
   if (!isAdmin(req)) {
     res.status(403).json({

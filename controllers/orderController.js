@@ -33,6 +33,7 @@ export async function createOrder(req, res) {
     const newOrderData = req.body;
 
     const newProductArray = [];
+    let total = 0;
 
     for (let i = 0; i < newOrderData.orderedItems.length; i++) {
       const product = await Product.findOne({
@@ -48,7 +49,7 @@ export async function createOrder(req, res) {
         });
         return;
       }
-
+      total += product.lastPrice * newOrderData.orderedItems[i].qty;
       newProductArray[i] = {
         name: product.productName,
         price: product.lastPrice,
@@ -59,7 +60,7 @@ export async function createOrder(req, res) {
     console.log(newProductArray);
 
     newOrderData.orderedItems = newProductArray;
-
+    newOrderData.total = total;
     newOrderData.orderId = orderId;
     newOrderData.email = req.user.email;
 
@@ -92,6 +93,46 @@ export async function getOrders(req, res) {
       res.json({
         message: "Please login to view orders",
       });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export async function getTotalOrders(req, res) {
+  try {
+    if (isAdmin(req)) {
+      const totalOrders = await Order.countDocuments({});
+      res.json({ totalOrders });
+    } else {
+      res.status(403).json({ message: "Unauthorized" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export async function getTotalRevenue(req, res) {
+  try {
+    if (isAdmin(req)) {
+      const totalRevenue = await Order.aggregate([
+        {
+          $unwind: "$orderedItems",
+        },
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: {
+                $multiply: ["$orderedItems.price", "$orderedItems.quantity"],
+              },
+            },
+          },
+        },
+      ]);
+      res.json({ totalRevenue: totalRevenue[0]?.total || 0 });
+    } else {
+      res.status(403).json({ message: "Unauthorized" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

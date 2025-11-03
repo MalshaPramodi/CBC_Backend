@@ -210,6 +210,19 @@ export async function getAllUsers(req, res) {
   }
 }
 
+export async function getTotalCustomers(req, res) {
+  try {
+    if (isAdmin(req)) {
+      const totalCustomers = await User.countDocuments({ type: "customer" });
+      res.json({ totalCustomers });
+    } else {
+      res.status(403).json({ message: "Unauthorized" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 //Customer Acc - john.doe@example.com hashed_password_here
 
 //Admin Acc - admin@example.com admin123

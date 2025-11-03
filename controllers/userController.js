@@ -193,6 +193,23 @@ export async function getUser(req, res) {
   res.json(req.user);
 }
 
+// New function to get all users
+export async function getAllUsers(req, res) {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.SECRET);
+
+    if (decoded.type !== "admin") {
+      return res.status(403).json({ message: "Forbidden: Admins only" });
+    }
+
+    const users = await User.find({}, "-password"); // Exclude passwords from the result
+    res.json(users);
+  } catch (error) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+}
+
 //Customer Acc - john.doe@example.com hashed_password_here
 
 //Admin Acc - admin@example.com admin123

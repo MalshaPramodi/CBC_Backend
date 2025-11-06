@@ -7,6 +7,7 @@ import productRouter from "./routes/productRouter.js";
 import orderRouter from "./routes/orderRouter.js";
 import paymentRouter from "./routes/paymentRouter.js";
 import cors from "cors";
+import recRouter from "./routes/recommendationRouter.js";
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/payments", paymentRouter);
+app.use("/api/recommendations", recRouter);
 
 app.listen(5000, () => {
   console.log("Server is running on port 5000");

@@ -1,5 +1,79 @@
 import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
+import Order from "../models/order.js";
+
+import mongoose from "mongoose";
+
+// --- FUNCTION for Newest Products ---
+export async function getNewArrivals(req, res) {
+  try {
+    const newProducts = await Product.find({}).sort({ createdAt: -1 }).limit(4);
+    res.json(newProducts);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching new arrivals", error });
+  }
+}
+
+// --- Trending Products Logic ---
+export async function getTrendingProducts(req, res) {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // This pipeline  matches the Order schema
+    const trendingProductInfo = await Order.aggregate([
+      // 1. Filter orders by the 'date' field
+      { $match: { date: { $gte: thirtyDaysAgo } } },
+
+      // 2. Deconstruct the 'orderedItems' array
+      { $unwind: "$orderedItems" },
+
+      // 3. Group by product 'name' and sum the quantity
+      {
+        $group: {
+          _id: "$orderedItems.name", // Group by the product name
+          totalQuantitySold: { $sum: "$orderedItems.quantity" },
+        },
+      },
+
+      // 4. Sort by the total quantity sold
+      { $sort: { totalQuantitySold: -1 } },
+
+      // 5. Limit to the top 4
+      { $limit: 4 },
+    ]);
+
+    // Get the product names from the aggregation result
+    const productNames = trendingProductInfo.map((p) => p._id);
+
+    // Fetch the full product details for those names
+    const trendingProducts = await Product.find({
+      productName: { $in: productNames },
+    });
+
+    // Sort the final list to match the trending rank
+    const sortedTrendingProducts = productNames
+      .map((name) =>
+        trendingProducts.find(
+          (p) => p.productName.toLowerCase() === name.toLowerCase()
+        )
+      )
+      .filter((p) => p); // Filter out any nulls
+    // --- DEBUG LINE ADDED ---
+    // This will print the exact data being sent to the frontend in the terminal.
+    console.log(
+      "DEBUG: Final Trending Products Sent to Frontend:",
+      JSON.stringify(sortedTrendingProducts, null, 2)
+    );
+
+    res.json(sortedTrendingProducts);
+  } catch (error) {
+    console.error("Error fetching trending products:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching trending products", error });
+  }
+}
 
 export function createProduct(req, res) {
   if (!isAdmin(req)) {
